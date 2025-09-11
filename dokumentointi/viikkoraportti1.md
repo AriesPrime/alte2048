@@ -1,7 +1,7 @@
 # Viikkoraportti - Viikko 1
 
 1. **Mitä olen tehnyt tällä viikolla?**  
-   Olen suunnitellut projektia ja valinnut aiheen (2048-pelin tekoälyversio). Mietin myös, miten ohjelma kannattaa toteuttaa ja millä algoritmilla.
+   Olen suunnitellut projektia ja valinnut aiheen (2048-pelin tekoälyversio). Mietin myös, miten ohjelma kannattaa toteuttaa ja millä algoritmilla. Olen myös kirjoittanut määrittelydokumentin.
 
 2. **Miten ohjelma on edistynyt?**  
    Olen kloonannut Git-repositorion ja aloittanut suunnittelun. Päätin, että käyttöliittymä toteutetaan yksinkertaisena tekstipohjaisena näkymänä, jotta voin keskittyä tekoälyn toteuttamiseen. Jos aikaa jää reilusti yli, saatan kokeilla myös HTML/JavaScript-käyttöliittymän toteuttamista.
