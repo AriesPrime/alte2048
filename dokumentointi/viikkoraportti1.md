@@ -1,4 +1,4 @@
-# Viikkoraportti – Viikko 1
+# Viikkoraportti - Viikko 1
 
 1. **Mitä olen tehnyt tällä viikolla?**  
    Olen suunnitellut projektia ja valinnut aiheen (2048-pelin tekoälyversio). Mietin myös, miten ohjelma kannattaa toteuttaa ja millä algoritmilla.
