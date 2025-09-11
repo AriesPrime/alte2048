@@ -13,7 +13,7 @@
    Aluksi testien ajaminen ei onnistunut, koska hakemistojen rakenne ei ollut oikein ja `src`-moduuli ei löytynyt. Siirtelin tiedostoja vähäsen niin alkoi toimimaan.
 
 5. **Mitä teen seuraavaksi?**  
-   Jatkan yksikkötestien kirjoittamista muille moduuleille (`board`, `heuristics`, `expectiminimax`, `gui`). Lisäksi voin alkaa miettiä heuristiikkafunktioiden parantamista ja pelin suorituskyvyn optimointia. Koska projekti on edennyt hyvässä tempossa, voisin myös alkaa suunnitella graafista käyttöliittymää joko pygame-kirjaston avulla tai tekemällä yksinkertaisen HTML-sivun.  
+   Jatkan yksikkötestien kirjoittamista muille moduuleille (`board`, `heuristics`, `expectiminimax`, `gui`). Lisäksi voin alkaa miettiä heuristiikkafunktioiden parantamista ja pelin suorituskyvyn optimointia. Koska projekti on edennyt hyvässä tempossa, voisin myös alkaa suunnitella graafista käyttöliittymää joko pygame-kirjaston avulla tai tekemällä yksinkertaisen HTML-sivun. Työstän myös projektin testikattavuutta.
 
 ---
 
