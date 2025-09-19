@@ -57,3 +57,15 @@ Testit voidaan suorittaa projektin juuressa komennolla:
 ```bash
 coverage run --branch -m pytest src
 coverage report -m
+```
+
+## Automaattipelin voi ajaa kahdella eri algoritmilla:
+
+- **Expectiminimax:**
+```bash
+python -m src.autoplay --algo expectiminimax --depth 4
+```
+- **Minimax:**
+```bash
+python -m src.autoplay --algo minimax --depth 4
+```
