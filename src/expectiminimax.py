@@ -2,7 +2,7 @@
 
 Tämä moduuli sisältää Expectiminimax-haun toteutuksen.  
 Rakenteessa on kolme tasoa:
-- MAX-solmut: pelaajan siirrot (best_move, max_value).
+- MAX-solmut: pelaajan siirrot (best_move_expecti, max_value).
 - CHANCE-solmut: satunnaisten laattojen lisäys (exp_value).
 - LEAF-solmut: arviointifunktio (leaf_value).
 
@@ -33,7 +33,7 @@ def dynamic_depth(b: int, e: int) -> int:
     return b+1 if e >= 8 else max(1, b-1) if e <= 2 else b
 
 
-def best_move(s: GameState, depth: int = 4) -> Tuple[Direction, float]:
+def best_move_expecti(s: GameState, depth: int = 4) -> Tuple[Direction, float]:
     """Palauttaa tekoälyn parhaan siirron ja sen arvioidun arvon.
 
     Args:

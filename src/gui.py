@@ -8,7 +8,7 @@ että automaattisessa pelissä.
 from __future__ import annotations
 from typing import Optional
 from .board import GameState, Direction
-from .expectiminimax import best_move
+from .expectiminimax import best_move_expecti
 
 
 def render(s: GameState) -> None:
@@ -43,7 +43,7 @@ def ai_step(s: GameState, depth: int) -> tuple[bool, Direction]:
     Returns:
         (onnistuiko siirto, suunta).
     """
-    d, _ = best_move(s, depth=depth)
+    d, _ = best_move_expecti(s, depth=depth)
     return s.move(d), d
 
 

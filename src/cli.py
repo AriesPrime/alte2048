@@ -1,11 +1,12 @@
-"""2048 - tekstikäyttöliittymä.
+"""2048-pelin komentorivikäyttöliittymä.
 
-Tämä moduuli tarjoaa yksinkertaisen komentorivikäyttöliittymän pelille.
-Käyttäjä voi tehdä siirtoja WASD-näppäimillä, pyytää tekoälyä siirtämään
-tai lopettaa pelin.
+Tämä moduuli käynnistää tekstipohjaisen pelin, jossa käyttäjä voi:
+- tehdä siirtoja WASD-näppäimillä,
+- pyytää tekoälyä tekemään siirron ("ai"),
+- lopettaa pelin ("q").
 
-Käyttö komentoriviltä:
-    python -m src.cli
+Moduuli huolehtii pelin alustuksesta, syötteiden lukemisesta ja
+pelilaudan tulostamisesta jokaisen siirron jälkeen.
 """
 
 from __future__ import annotations
