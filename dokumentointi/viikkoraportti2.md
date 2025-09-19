@@ -10,11 +10,15 @@
    Opin kirjoittamaan kommentteja docstring-tyylillä sekä unittestin perusteet Pythonissa.  
 
 4. **Mikä jäi epäselväksi tai tuottanut vaikeuksia?**  
-   Aluksi testien ajaminen ei onnistunut, koska hakemistojen rakenne ei ollut oikein ja `src`-moduuli ei löytynyt. Siirtelin tiedostoja vähäsen niin alkoi toimimaan.
+   Aluksi testien ajaminen ei onnistunut, koska hakemistojen rakenne ei ollut oikein ja `src`-moduuli ei löytynyt. Siirtelin tiedostoja vähäsen niin alkoi toimimaan.  
 
 5. **Mitä teen seuraavaksi?**  
-   Jatkan yksikkötestien kirjoittamista muille moduuleille (`board`, `heuristics`, `expectiminimax`, `gui`). Lisäksi voin alkaa miettiä heuristiikkafunktioiden parantamista ja pelin suorituskyvyn optimointia. Koska projekti on edennyt hyvässä tempossa, voisin myös alkaa suunnitella graafista käyttöliittymää joko pygame-kirjaston avulla tai tekemällä yksinkertaisen HTML-sivun.  
+   Jatkan yksikkötestien kirjoittamista muille moduuleille (`board`, `heuristics`, `expectiminimax`, `gui`). Lisäksi voin alkaa miettiä heuristiikkafunktioiden parantamista ja pelin suorituskyvyn optimointia. Koska projekti on edennyt hyvässä tempossa, voisin myös alkaa suunnitella graafista käyttöliittymää joko pygame-kirjaston avulla tai tekemällä yksinkertaisen HTML-sivun. Työstän myös projektin testikattavuutta.  
 
 ---
 
 **Tämän viikon työaika:** n. 17 tuntia  
+
+**Lähteet:**  
+- [2048 Using Expectimax (University of Massachusetts Lowell)](https://www.cs.uml.edu/ecg/uploads/AIfall14/vignesh_gayas_2048_project.pdf)  
+- [Wikipedia: Expectiminimax](https://en.wikipedia.org/wiki/Expectiminimax)  
