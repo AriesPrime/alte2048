@@ -1,39 +1,33 @@
 """Automaattinen pelinsimulaattori 2048-tekoälylle.
 
-Tämä moduuli ajaa yhden täyden 2048-pelin valitulla tekoälymoottorilla ja
+Tämä moduuli ajaa yhden täyden 2048-pelin Expectiminimax-tekniikalla ja
 tulostaa tilanteen jokaisen siirron jälkeen.
 
 Käyttö komentoriviltä:
-    python -m src.autoplay --depth 5 --engine minimax
+    python -m src.autoplay --depth 5
 
 Argumentit:
 - --depth: Haun syvyys (suurempi = vahvempi, mutta hitaampi).
-- --engine: 'expecti' (Expectiminimax, oletus) tai 'minimax' (Minimax + alpha-beta).
 """
 
 from __future__ import annotations
 import argparse
 from .board import new_game
 from .expectiminimax import best_move_expecti
-from .minimax import best_move_minimax
 from .gui import render, print_ai_move, print_final
 
 
-
-
-def run(depth: int = 4, engine: str = "expecti") -> None:
-    """Suorittaa yhden pelin valitulla tekoälymoottorilla.
+def run(depth: int = 4) -> None:
+    """Suorittaa yhden pelin Expectiminimaxilla.
 
     Args:
         depth: Haun perussyvyys.
-        engine: 'expecti' tai 'minimax'.
     """
-    choose = best_move_expecti if engine == "expecti" else best_move_minimax
     s = new_game()
     render(s)
     i = 0
     while not s.over:
-        d, _ = choose(s, depth=depth)
+        d, _ = best_move_expecti(s, depth=depth)
         s.move(d)
         i += 1
         print_ai_move(i, d)
@@ -42,16 +36,20 @@ def run(depth: int = 4, engine: str = "expecti") -> None:
 
 
 def parse_args(argv=None) -> argparse.Namespace:
-    ap = argparse.ArgumentParser(description="Suorita yksi tekoälyn pelaama 2048-peli.")
-    ap.add_argument("--depth", type=int, default=4,
-                    help="haun syvyys (suurempi = hitaampi, mutta vahvempi)")
-    ap.add_argument("--engine", choices=["expecti", "minimax"], default="expecti",
-                    help="valitse algoritmi tekoälylle: 'expecti' (oletus) tai 'minimax'")
+    ap = argparse.ArgumentParser(description="Suorita yksi tekoälyn pelaama 2048-peli Expectiminimaxilla.")
+    ap.add_argument(
+        "--depth",
+        type=int,
+        default=4,
+        help="haun syvyys (suurempi = hitaampi, mutta vahvempi)",
+    )
     return ap.parse_args(argv)
+
 
 def main(argv=None) -> None:
     args = parse_args(argv)
-    run(depth=args.depth, engine=args.engine)
+    run(depth=args.depth)
+
 
 if __name__ == "__main__":  # pragma: no cover
     main()

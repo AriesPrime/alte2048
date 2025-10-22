@@ -1,44 +1,83 @@
 # Määrittelydokumentti
 
 ## Ohjelmointikieli
-Projektissa käytän **Pythonia**. Käyttöliittymä on yksinkertainen tekstipohjainen ratkaisu, jossa pelilauta tulostetaan terminaaliin ja pelaaja voi antaa siirtoja näppäimistön kautta.  
+Projektissa käytän **Pythonia**. Käyttöliittymä on yksinkertainen tekstipohjainen ratkaisu, jossa pelilauta tulostetaan terminaaliin ja tekoäly pelaa automaattisesti ilman graafista rajapintaa.  
 
-Hallitsen myös muita kieliä kuten **Java**, **JavaScript**, **SQL** ja jonkun verran **C**.
+Hallitsen myös muita kieliä kuten **Java**, **JavaScript**, **SQL** ja jonkin verran **C**.
+
+---
 
 ## Algoritmit ja tietorakenteet
-Projektin keskiössä on **Expectiminimax-algoritmi**, joka sopii 2048-peliin, koska siinä on yksi pelaaja ja satunnaiselementti (uuden laatan ilmestyminen). Algoritmi arvioi sekä pelaajan mahdolliset siirrot että satunnaistapahtumien todennäköisyydet.  
+Projektin keskiössä on **Expectiminimax-algoritmi**, joka sopii 2048-peliin, koska siinä on yksi pelaaja ja satunnaiselementti (uuden laatan ilmestyminen).  
+Algoritmi arvioi sekä pelaajan mahdolliset siirrot että todennäköisyyksiin perustuvat satunnaistapahtumat (2 tai 4 -laatan syntyminen).  
 
-Tietorakenteena käytän 4×4-kokoista kaksidimensionaalista listaa (Python `list`), jossa pidetään kirjaa laudan tilasta. Lisäksi käytän yksinkertaisia apufunktioita siirtojen ja yhdistämisten toteuttamiseen.
+Tietorakenteena käytän kiinteää **4×4-kokoista kaksidimensionaalista listaa (`list[list[int]`)**, jossa pidetään kirjaa laudan tilasta.  
+Siirtojen simulointi on erotettu omaan moduuliin **`grid_ops.py`**, jossa laudan liikkeitä käsitellään puhtailla funktioilla ilman olioiden kopiointia. Tämä tekee algoritmista merkittävästi nopeamman ja vähentää muistinkulutusta.
+
+---
 
 ## Ratkaistava ongelma
-Tavoitteena on toteuttaa toimiva 2048-peli, jossa tekoäly osaa tehdä hyviä siirtoja Expectiminimax-algoritmin avulla. Ydinongelma on algoritmin suunnittelu ja heuristiikkojen rakentaminen siten, että peliä voidaan pelata pitkälle ja korkeilla pistemäärillä.
+Tavoitteena on toteuttaa tehokas ja älykäs tekoäly, joka pelaa 2048-peliä mahdollisimman pitkälle ja saavuttaa korkeita pistemääriä.  
+Haasteena on yhdistää **hakualgoritmin tehokkuus** ja **heuristiikkojen laatu**, jotta tekoäly osaa tasapainottaa riskin ja hyötyä satunnaisissa tilanteissa.
+
+---
 
 ## Syötteet ja niiden käyttö
-- **Pelaajan syötteet:** näppäimistön nuolinäppäimet tai WASD.  
-- **Satunnaissyöte:** laudalle ilmestyvät uudet laatat (2 todennäköisyydellä 0.9 tai 4 todennäköisyydellä 0.1).  
-- **Tekoälyn syöte:** Expectiminimax valitsee seuraavan siirron, kun AI:ta pyydetään.
+- **Pelaajan syötteet:** Peliä voi ajaa automaattisesti tekoälyn ohjaamana (komentoriviltä `autoplay.py`).  
+- **Satunnaissyöte:** Uudet laatat ilmestyvät laudalle arvoilla 2 (90 %) tai 4 (10 %).  
+- **Tekoälyn syöte:** Expectiminimax-haku arvioi eri siirtovaihtoehdot ja valitsee parhaan.
 
-## Tavoitteena olevat aika- ja tilavaativuudet
-- **Aikavaativuus:** Expectiminimaxin aikavaativuus kasvaa eksponentiaalisesti syvyyden mukaan, koska jokaisesta tilasta haarautuu pelaajan siirrot ja satunnaiset tapahtumat. Käytännössä rajoitan hakusyvyyden 4–6 kerrokseen.  
-- **Tilavaativuus:** Laudan koko on vakio (4×4), joten muistinkulutus on vähäinen. Suurin osa muistista kuluu hakupuun rakenteeseen.  
-- Käytän heuristiikkafunktiota estimoimaan tilanteen hyvyyttä, jotta peliä ei tarvitse laskea loppuun asti.
+---
+
+## Aika- ja tilavaativuus
+- **Aikavaativuus:** Expectiminimaxin aikavaativuus kasvaa eksponentiaalisesti hakusyvyyden myötä. Käytännössä syvyys on rajattu noin 4–6 kerrokseen, mikä tuottaa hyviä tuloksia ilman hidastumista.  
+  Dynaaminen hakusyvyys mukautuu tilanteen mukaan (enemmän tyhjiä tai iso laatta kulmassa → syvempää hakua).  
+- **Tilavaativuus:** Laudan koko on vakio (4×4), joten muistinkulutus pysyy rajattuna. Eniten muistia kuluu välimuisteihin ja heuristiikka-arvojen tallennukseen.  
+
+Optimointien ansiosta (välimuisti, heuristiikkojen uudelleenkäyttö ja tehokkaat siirtofunktiot `grid_ops.py`:ssa) tekoäly pystyy arvioimaan tuhansia pelitiloja sekunnissa.
+
+---
 
 ## Heuristiikat
-Pelitilanteen arviointi tehdään seuraavilla heuristiikoilla:
-1. Tyhjien ruutujen määrä  
-2. Suurimman laatikon sijainti kulmassa  
-3. Monotonia riveissä ja sarakkeissa (arvot suurenevat tai pienenevät johdonmukaisesti)  
-4. Yhdistämismahdollisuudet (kuinka monta siirtoa johtaa yhdistämiseen)  
+Arviointifunktio yhdistää useita tekijöitä:
+1. **Tyhjien ruutujen määrä** – enemmän tyhjää tilaa mahdollistaa liikkumisen ja yhdistämisen.  
+2. **Käärmemäinen painotus (monotonicity)** – suosii suurten laattojen sijoittamista kulmiin ja arvojen pientä vaihtelua riveittäin.  
+3. **Tasaisuus (smoothness)** – palkitsee vierekkäisiä laattoja, joiden log2-arvojen erot ovat pieniä.  
+4. **Yhdistymispotentiaali** – rohkaisee samanarvoisia laattoja vierekkäin.  
+5. **Kulmabonus** – antaa lisäpisteitä, jos suurin laatta on kulmassa.  
 
-Näitä voidaan yhdistää painotetuksi summaksi arviointifunktiossa.
+Painotettu yhdistelmä näistä tekijöistä ohjaa tekoälyä tehokkaasti pitkissä peleissä.
+
+---
+
+## Mahdolliset puutteet ja kehitysehdotukset
+Tekoälyn suorituskykyä voisi edelleen parantaa:
+- **Iteratiivisella syvyyshaulla (iterative deepening)** tai **aikarajoitetulla haulla**, jolloin tekoäly pelaa reaaliajassa ilman kiinteää syvyysrajaa.  
+- **Monisäikeisyydellä** (parallelisointi), jolloin eri siirrot voidaan arvioida samanaikaisesti.  
+- **Painokertoimien automaattisella optimoinnilla**, esimerkiksi koneoppimisen avulla.
+
+---
 
 ## Lähteet
-- Yun Nie, Wenqi Hou & Yicheng An: *AI Plays 2048* (artikkeli kurssin ohjeissa)  
+- Yun Nie, Wenqi Hou & Yicheng An: *AI Plays 2048* (kurssin ohjeissa)  
+- [2048 Using Expectimax (University of Massachusetts Lowell)](https://www.cs.uml.edu/ecg/uploads/AIfall14/vignesh_gayas_2048_project.pdf)  
+- [Wikipedia: Expectiminimax](https://en.wikipedia.org/wiki/Expectiminimax)
 
 ---
 
 ## Harjoitustyön ydin
-Harjoitustyön ydin on **tekoälyalgoritmin (Expectiminimax) toteutus 2048-pelissä**. Käyttöliittymä on yksinkertainen tekstipohjainen, mutta se riittää, koska suurin osa ajasta menee tekoälyn ja heuristiikkojen suunnitteluun ja optimointiin.
+Harjoitustyön ydin on **Expectiminimax-tekniikkaan perustuvan 2048-tekoälyn toteutus ja optimointi**.  
+Tärkeimmät osa-alueet ovat hakualgoritmin tehokkuus, heuristiikkojen laatu ja puhtaan rakenteen ylläpito (`grid_ops`, `heuristics`, `expectiminimax`).
+
+---
+
+## Suurten kielimallien käyttö (ChatGPT)
+Hyödynsin **ChatGPT:tä (GPT-5)**:
+- Koodin optimointiin (erityisesti välimuistit, siirtofunktiot ja heuristiikat).  
+- Dokumentaation rakenteen ja kielen yhtenäistämiseen.  
+- Erilaisten heuristiikkavaihtoehtojen vertailuun.  
+
+Kaikki koodi, algoritmit ja testit on kuitenkin toteutettu ja validoitu itsenäisesti.
 
 ---
 

@@ -9,7 +9,7 @@ import src.expectiminimax as ex
 
 @pytest.fixture(autouse=True)
 def _clear_cache():
-    # Tyhjennä välimuisti ennen ja jälkeen joka testin, jotta testit ovat riippumattomia
+    # Tyhjennä välimuistit ennen ja jälkeen joka testin
     ex.cache.clear()
     yield
     ex.cache.clear()
@@ -25,28 +25,18 @@ class FakeState:
     - score: kokonaispisteet (float/int)
     - empty_cells(): palauttaa ennalta määritellyn listan tyhjiä koordinaatteja
     - copy(): palauttaa uuden FakeState-olion, jolla on kopio gridistä
-    - move_no_spawn(dir): palauttaa esiasetetun totuusarvon per suunta
     """
 
-    def __init__(self, grid, empties=None, movable=None, score=0):
+    def __init__(self, grid, empties=None, score=0):
         self.grid = [row[:] for row in grid]
         self.score = score
         self._empties = list(empties or [])
-        # movable-kartta: {"left": True/False, ...}
-        default = {"left": False, "up": False, "right": False, "down": False}
-        default.update(movable or {})
-        self._movable = default
 
     def empty_cells(self):
         return list(self._empties)
 
     def copy(self):
-        return FakeState(
-            self.grid, empties=self._empties, movable=self._movable, score=self.score
-        )
-
-    def move_no_spawn(self, d):
-        return bool(self._movable.get(d, False))
+        return FakeState(self.grid, empties=self._empties, score=self.score)
 
 
 # ---------- make_key / leaf_value / dynamic_depth ----------
@@ -61,29 +51,37 @@ def test_make_key_is_deterministic():
     g[0][0] = 99
     assert t[0][0][0] == 0
 
-@patch.object(ex, "evaluate", return_value=7.5)
-def test_leaf_value_returns_score_plus_heuristic(evaluate):
+@patch.object(ex, "eval_cached", return_value=7.5)
+def test_leaf_value_returns_score_plus_heuristic(eval_cached):
     s = FakeState([[2, 0, 0, 0]] + [[0]*4 for _ in range(3)], score=100)
     assert ex.leaf_value(s) == 107.5
-    evaluate.assert_called_once_with(s.grid)
+    eval_cached.assert_called_once_with(s.grid)
 
 def test_dynamic_depth_rules():
-    # e >= 8 -> b+1
-    assert ex.dynamic_depth(4, 8) == 5
-    assert ex.dynamic_depth(2, 12) == 3
-    # 2 < e < 8 -> b
-    assert ex.dynamic_depth(5, 5) == 5
-    # e <= 2 -> max(1, b-1)
-    assert ex.dynamic_depth(4, 2) == 3
-    assert ex.dynamic_depth(1, 1) == 1  # ei pudota alle 1
+    # Palvelulogiikka: paljon tyhjiä -> syvemmälle; vähän tyhjiä -> matalammalle;
+    # iso laatan ollessa jo suuri ja tyhjää vähän -> lisää hieman syvyyttä.
+    assert ex.dynamic_depth(4, 8, largest=0) >= 5      # +1 kun e >= 8
+    assert ex.dynamic_depth(4, 12, largest=0) >= 6     # +2 kun e >= 12
+    assert ex.dynamic_depth(5, 5, largest=0) == 5      # väliarvot -> perus
+    assert ex.dynamic_depth(4, 2, largest=0) == 3      # vähän tyhjää -> -1 (mutta >=1)
+    assert ex.dynamic_depth(1, 1, largest=0) == 1
+    # jos iso laatta on jo suuri ja tila tiukka, syvyyttä lisätään hieman
+    assert ex.dynamic_depth(4, 4, largest=2048) >= 5
 
 
 # ---------- best_move_expecti ----------
 
 @patch.object(ex, "exp_value")
 def test_best_move_expecti_selects_best_direction(exp_value):
-    # vasen ja ylös ovat mahdollisia, oikea/alaspäin eivät
-    s = FakeState([[0]*4 for _ in range(4)], movable={"left": True, "up": True})
+    # Tee kaksi toteuttamiskelpoista siirtoa:
+    # - vasen: (0,1)=2 siirtyy vasemmalle
+    # - ylös:  (1,0)=2 siirtyy ylöspäin
+    s = FakeState([
+        [0, 2, 0, 0],
+        [2, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ])
     # MOVE_ORDER = (left, up, right, down) -> arvot vastaavat tätä järjestystä
     exp_value.side_effect = [10.0, 5.0]  # vasen parempi kuin ylös
 
@@ -95,18 +93,25 @@ def test_best_move_expecti_selects_best_direction(exp_value):
 
 @patch.object(ex, "exp_value")
 def test_best_move_expecti_uses_dynamic_depth(exp_value):
-    # 16 tyhjää -> dynamic_depth(depth=4, e=16) = 5 -> exp_value saa d-1 = 4
-    s = FakeState([[0]*4 for _ in range(4)], movable={"left": True})
+    # 15 tyhjää (yksi laatta) -> base depth=4, e>=12 -> dynamic_depth = 6 -> exp saa d-1 = 5
+    s = FakeState([
+        [0, 2, 0, 0],  # vasen on mahdollinen
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ])
     exp_value.return_value = 1.0
     ex.best_move_expecti(s, depth=4)
-    # varmistetaan että exp_value:n toinen argumentti oli 4
+    # varmistetaan että exp_value:n toinen argumentti oli 5
     _, args, _ = exp_value.mock_calls[0]
-    assert args[1] == 4
+    assert args[1] == 5
 
-    # e <= 2 -> depth pienenee yhdellä (mutta vähintään 1)
+    # tiukka tila (<=2 tyhjää) alentaa syvyyttä: esim. d=4, e=2 -> dyn=3 -> exp d-1=2
     tight = FakeState(
-        [[2, 2, 2, 2], [4, 4, 4, 4], [8, 8, 8, 8], [16, 0, 32, 64]],
-        movable={"up": True},
+        [[2, 2, 2, 2],
+         [4, 4, 4, 4],
+         [8, 8, 8, 8],
+         [16, 0, 32, 0]]
     )
     exp_value.reset_mock()
     exp_value.return_value = 2.0
@@ -156,11 +161,16 @@ def test_exp_value_uses_cache_for_same_state(max_value):
     v2 = ex.exp_value(s, d=2)
 
     assert v1 == v2
-    assert max_value.call_count == 2  # val=2 ja val=4 (kaksi arvoa) vain ensimmäisellä kerralla
+    # val=2 ja val=4 (kaksi arvoa) vain ensimmäisellä kerralla
+    assert max_value.call_count == 2
 
 @patch.object(ex, "leaf_value", return_value=7.0)
 def test_exp_value_with_no_empties_returns_leaf_and_caches(leaf_value):
-    s = FakeState([[2, 2, 2, 2], [4, 4, 4, 4], [8, 8, 8, 8], [16, 32, 64, 128]], empties=[])
+    s = FakeState([[2, 2, 2, 2],
+                   [4, 4, 4, 4],
+                   [8, 8, 8, 8],
+                   [16, 32, 64, 128]],
+                  empties=[])
     # Ei tyhjiä -> leaf + cache
     v1 = ex.exp_value(s, d=3)
     v2 = ex.exp_value(s, d=3)
@@ -172,35 +182,43 @@ def test_exp_value_with_no_empties_returns_leaf_and_caches(leaf_value):
 
 @patch.object(ex, "leaf_value", return_value=123.0)
 def test_max_value_returns_leaf_when_no_moves(leaf_value):
-    # kaikki suunnat ovat mahdottomia
+    # tee lauta, jossa mikään suunta ei muuta laattoja (täysi ja ei-yhdistyvä)
     s = FakeState([[2, 4, 2, 4],
                    [4, 2, 4, 2],
                    [2, 4, 2, 4],
-                   [4, 2, 4, 2]],
-                  movable={"left": False, "up": False, "right": False, "down": False})
+                   [4, 2, 4, 2]])
     assert ex.max_value(s, d=3) == 123.0
     leaf_value.assert_called_once()
 
 @patch.object(ex, "exp_value")
 def test_max_value_selects_best_move(exp_value):
-    # vasen ja ylös mahdollisia
-    s = FakeState([[0]*4 for _ in range(4)], movable={"left": True, "up": True})
+    # molemmat siirrot mahdollisia (ks. best_move-testin asettelu)
+    s = FakeState([
+        [0, 2, 0, 0],
+        [2, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ])
     exp_value.side_effect = [1.5, 3.0]  # ylös parempi
 
     res = ex.max_value(s, d=2)
     assert res == 3.0
 
-    # tarkista että exp_value kutsuttiin kahdesti
+    # tarkista että exp_value kutsuttiin kahdesti ja d-1 välittyi
     assert exp_value.call_count == 2
-    # tarkista että toinen argumentti oli aina d-1 = 1
     for _, args, _ in exp_value.mock_calls:
         assert args[1] == 1
 
 @patch.object(ex, "leaf_value", return_value=9.0)
 @patch.object(ex, "exp_value", return_value=5.0)
 def test_max_value_cache_hits(exp_value, leaf_value):
-    # yksi mahdollinen siirto -> ensimmäinen kutsu täyttää välimuistin
-    s = FakeState([[0]*4 for _ in range(4)], movable={"left": True})
+    # vähintään yksi mahdollinen siirto -> cache täyttyy
+    s = FakeState([
+        [0, 2, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ])
     v1 = ex.max_value(s, d=3)
     v2 = ex.max_value(s, d=3)
     assert v1 == v2 == 5.0

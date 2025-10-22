@@ -1,4 +1,4 @@
-"""Autoplay-moduulin pytest-testit."""
+"""Autoplay-moduulin pytest-testit (Expectiminimax-only)."""
 
 from unittest.mock import patch, call
 import src.autoplay as autoplay
@@ -33,7 +33,7 @@ def test_run_one_iteration_expecti(new_game, best_move_expecti, render, print_ai
     new_game.return_value = s
     best_move_expecti.return_value = ("left", 0.0)
 
-    autoplay.run(depth=7)  # oletusengine: expecti
+    autoplay.run(depth=7)  # engine-parametria ei enää ole
 
     assert render.call_count == 2
     best_move_expecti.assert_called_once_with(s, depth=7)
@@ -99,112 +99,19 @@ def test_call_order_expecti(new_game, best_move_expecti, render, print_ai, print
     print_ai.side_effect = log("print_ai_move")
     print_final.side_effect = log("print_final")
 
-    autoplay.run(depth=3, engine="expecti")
+    autoplay.run(depth=3)
 
     assert order == ["render", "print_ai_move", "render", "print_ai_move", "render", "print_final"]
 
 
-@patch.object(autoplay, "best_move_minimax")
-@patch.object(autoplay, "print_final")
-@patch.object(autoplay, "print_ai_move")
-@patch.object(autoplay, "render")
-@patch.object(autoplay, "best_move_expecti")
-@patch.object(autoplay, "new_game")
-def test_expecti_does_not_call_minimax(new_game, best_move_expecti, render, print_ai, print_final, best_move_minimax):
-    s = FakeState(1)
-    new_game.return_value = s
-    best_move_expecti.return_value = ("left", 0.0)
-
-    autoplay.run(depth=5, engine="expecti")
-
-    best_move_expecti.assert_called_once()
-    best_move_minimax.assert_not_called()
-
-
-# ---------- Minimax ----------
-
-@patch.object(autoplay, "print_final")
-@patch.object(autoplay, "print_ai_move")
-@patch.object(autoplay, "render")
-@patch.object(autoplay, "best_move_minimax")
-@patch.object(autoplay, "new_game")
-def test_run_one_iteration_minimax(new_game, best_move_minimax, render, print_ai, print_final):
-    s = FakeState(1)
-    new_game.return_value = s
-    best_move_minimax.return_value = ("right", 9.0)
-
-    autoplay.run(depth=6, engine="minimax")
-
-    assert render.call_count == 2
-    best_move_minimax.assert_called_once_with(s, depth=6)
-    print_ai.assert_called_once_with(1, "right")
-    print_final.assert_called_once()
-
-
-@patch.object(autoplay, "print_final")
-@patch.object(autoplay, "print_ai_move")
-@patch.object(autoplay, "render")
-@patch.object(autoplay, "best_move_minimax")
-@patch.object(autoplay, "new_game")
-def test_run_three_iterations_minimax(new_game, best_move_minimax, render, print_ai, print_final):
-    s = FakeState(3)
-    new_game.return_value = s
-    best_move_minimax.return_value = ("down", 42.0)
-
-    autoplay.run(depth=3, engine="minimax")
-
-    assert render.call_count == 4
-    assert print_ai.call_count == 3
-    assert print_ai.mock_calls == [call(1, "down"), call(2, "down"), call(3, "down")]
-    print_final.assert_called_once()
-
-
-@patch.object(autoplay, "print_final")
-@patch.object(autoplay, "print_ai_move")
-@patch.object(autoplay, "render")
-@patch.object(autoplay, "best_move_minimax")
-@patch.object(autoplay, "new_game")
-def test_run_zero_iterations_minimax(new_game, best_move_minimax, render, print_ai, print_final):
-    class DoneState:
-        over = True
-        def move(self, _):  # pragma: no cover
-            raise AssertionError("move() ei saa koskaan kutsua kun peli on jo over")
-    new_game.return_value = DoneState()
-
-    autoplay.run(depth=4, engine="minimax")
-
-    render.assert_called_once()
-    best_move_minimax.assert_not_called()
-    print_ai.assert_not_called()
-    print_final.assert_called_once()
-
-
-@patch.object(autoplay, "best_move_expecti")
-@patch.object(autoplay, "print_final")
-@patch.object(autoplay, "print_ai_move")
-@patch.object(autoplay, "render")
-@patch.object(autoplay, "best_move_minimax")
-@patch.object(autoplay, "new_game")
-def test_minimax_does_not_call_expecti(new_game, best_move_minimax, render, print_ai, print_final, best_move_expecti):
-    s = FakeState(1)
-    new_game.return_value = s
-    best_move_minimax.return_value = ("right", 1.0)
-
-    autoplay.run(depth=5, engine="minimax")
-
-    best_move_minimax.assert_called_once()
-    best_move_expecti.assert_not_called()
-
-
-# ---------- CLI smoke tests ----------
+# ---------- CLI smoke tests (engine poistettu) ----------
 
 @patch.object(autoplay, "run")
-def test_cli_main_minimax_invokes_run_with_args(run_mock):
-    autoplay.main(["--depth", "5", "--engine", "minimax"])
-    run_mock.assert_called_once_with(depth=5, engine="minimax")
-
+def test_cli_main_invokes_run_with_args(run_mock):
+    autoplay.main(["--depth", "5"])
+    run_mock.assert_called_once_with(depth=5)
 
 @patch.object(autoplay, "run")
 def test_cli_main_defaults_to_expecti(run_mock):
     autoplay.main([])
-    run_mock.assert_called_once_with(depth=4, engine="expecti")
+    run_mock.assert_called_once_with(depth=4)
