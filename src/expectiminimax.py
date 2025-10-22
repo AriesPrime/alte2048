@@ -1,6 +1,5 @@
 """Expectiminimax-haku 2048-tekoälylle – optimoitu.
 
-Parannukset:
 - Dynaaminen syvyys huomioi sekä tyhjät että suurimman laatan.
 - Evaluoinnin välimuisti (eval_cache) vähentää heuristiikkakutsuja.
 - Siirtojen järjestys: käytä nopeaa proxy-arviota (score+evaluate) ennen exp_valuea.
