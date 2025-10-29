@@ -97,7 +97,7 @@ Kattavuus:
 
 ## Esimerkkikuva (kattavuusraportti)
 
-![Test Coverage](test_coverage.png)
+![Test Coverage](dokumentointi/test_coverage.png)
 
 ---
 
