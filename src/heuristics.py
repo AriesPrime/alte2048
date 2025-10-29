@@ -97,8 +97,8 @@ def corner_bonus(g: Grid) -> float:
 # ---------- pääarvio ----------
 
 # Painokertoimet – maltilliset ja käytännössä toimivat
-_W_EMPTY   = 9.0
-_W_SNAKE   = 1.2
+_W_EMPTY   = 12.0     # korostetaan tyhjiä selkeämmin
+_W_SNAKE   = 1.0      # pieni pehmennys, ettei ohita empties-signaalia
 _W_SMOOTH  = 0.4
 _W_MERGE   = 2.5
 _W_CORNER  = 0.8
