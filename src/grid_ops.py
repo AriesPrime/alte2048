@@ -5,9 +5,9 @@ Tämä moduuli sisältää pelilaudan suuntaiset siirtofunktiot
 Funktiot ovat puhtaita: ne eivät muuta alkuperäistä ruudukkoa
 vaan palauttavat uuden ruudukon ja saadut pisteet (gain).
 
-Näitä funktioita voidaan käyttää hakualgoritmeissa (Expectiminimax,
-Minimax) nopeuttamaan laskentaa, koska ne eivät tee ylimääräisiä
-kopioita tai pelitilan päivityksiä.
+Näitä funktioita voidaan käyttää hakualgoritmissa nopeuttamaan 
+laskentaa, koska ne eivät tee ylimääräisiä kopioita tai 
+pelitilan päivityksiä.
 """
 
 from typing import List, Tuple
