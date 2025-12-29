@@ -7,6 +7,3 @@ coverage>=7.2      # testikattavuuden mittaukseen
 
 # Valinnainen: tarvitaan vain, jos halutaan yhdistää coverage pytestiin
 pytest-cov>=4.0
-
-# Pythonin vähimmäisversio (sama kuin pyproject.toml-tiedostossa)
-python_version >= "3.10"

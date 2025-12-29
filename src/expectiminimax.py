@@ -40,6 +40,8 @@ def eval_cached(g: List[List[int]]) -> float:
 
 def leaf_value(s: GameState) -> float:
     """Laskee lehtisolmun arvon (pisteet + heuristiikka)."""
+    if _largest_tile(s.grid) >= 2048:
+        return 1e9
     return float(s.score) + eval_cached(s.grid)
 
 def _largest_tile(g: List[List[int]]) -> int:
